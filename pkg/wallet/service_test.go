@@ -5,27 +5,27 @@ import (
 	"testing"
 )
 
-func TestService_FindAccountById_success(t *testing.T) {
+func TestService_FindAccountByID_success(t *testing.T) {
 	svc := Service{}
 	account, err := svc.RegisterAccount("+9920000001")
 	if err != nil {
 		fmt.Println(account)
 	}
 
-	account, err = svc.FindAccountById(1)
+	account, err = svc.FindAccountByID(1)
 	if err != nil {
 		t.Errorf("\ngot > %v \nwant > nil", err)
 	}
 }
 
-func TestService_FindAccountById_notFound(t *testing.T) {
+func TestService_FindAccountByID_notFound(t *testing.T) {
 	svc := Service{}
 	account, err := svc.RegisterAccount("+9920000001")
 	if err != nil {
 		fmt.Println(account)
 	}
 
-	account, err = svc.FindAccountById(3)
+	account, err = svc.FindAccountByID(3)
 	if err == nil {
 		t.Errorf("\ngot > %v \nwant > nil", err)
 	}
