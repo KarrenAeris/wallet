@@ -93,7 +93,8 @@ func (s *Service) Pay(accountID int64, amount types.Money, category types.Paymen
 	s.payments = append(s.payments, payment)
 	return payment, nil
 }
-// FindAccountByIdmethod ищет пользователя по ID
+
+// FindAccountById ищет пользователя по ID
 func (s *Service) FindAccountByID(accountID int64) (*types.Account, error) {
 	var account *types.Account
 	for _, acc := range s.accounts {
@@ -108,4 +109,40 @@ func (s *Service) FindAccountByID(accountID int64) (*types.Account, error) {
 	}
 
 	return account, nil
+}
+
+// FindPaymentByID ищет платёж по ID
+func (s *Service) FindPaymentByID(paymentID string) (*types.Payment, error) {
+	var payment *types.Payment
+
+	for _, pay := range s.payments {
+		if pay.ID == paymentID {
+			payment = pay
+		}
+	}
+
+	if payment == nil {
+		return nil, ErrPaymentNotFound
+	}
+
+	return payment, nil
+}
+
+
+// Reject отменяет платёж
+func (s *Service) Reject(paymentID string) error {
+	pay, err := s.FindPaymentByID(paymentID)
+	if err != nil {
+		return ErrPaymentNotFound
+	}
+
+	acc, err := s.FindAccountByID(pay.AccountID)
+	if err != nil {
+		return ErrAccountNotFound
+	}
+
+	pay.Status = types.PaymentStatusFail
+	acc.Balance += pay.Amount
+
+	return nil
 }
