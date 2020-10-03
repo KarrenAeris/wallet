@@ -1,12 +1,11 @@
 package wallet
 
-import "github.com/KarrenAeris/wallet/pkg/types"
+import (
+	"errors"
 
-type Error string
-
-func (e Error) Error() string {
-	return string(e)
-}
+	"github.com/KarrenAeris/wallet/pkg/types"
+	"github.com/google/uuid"
+)
 
 // распространённые возможные ошибки
 var ErrPhoneRegistered = errors.New("phone already registred")
@@ -30,7 +29,7 @@ func (s *Service) RegisterAccount(phone types.Phone) (*types.Account, error) {
 		}	
 	}
 	s.NextAccountID++
-	account = &types.Account {
+	account := &types.Account {
 		ID : s.NextAccountID,
 		Phone: phone,
 		Balance: 0,
@@ -62,7 +61,7 @@ func (s *Service) Deposit(accountID int64, amount types.Money) error {
 	return nil
 }
 
-// 
+// Pay платит определенную сумму денег за категорию
 func (s *Service) Pay(accountID int64, amount types.Money, category types.PaymentCategory) (*types.Payment, error) {
 	if amount <= 0 {
 		return nil, ErrAmountMustBePositive
@@ -93,4 +92,20 @@ func (s *Service) Pay(accountID int64, amount types.Money, category types.Paymen
 	}
 	s.payments = append(s.payments, payment)
 	return payment, nil
+}
+// FindAccountByIdmethod ищет пользователя по ID
+func (s *Service) FindAccountById(accountID int64) (*types.Account, error) {
+	var account *types.Account
+	for _, acc := range s.accounts {
+		if acc.ID == accountID {
+			account = acc
+			break
+		}
+	}
+
+	if account == nil {
+		return nil, ErrAccountNotFound
+	}
+
+	return account, nil
 }
