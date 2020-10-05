@@ -21,6 +21,7 @@ type Service struct  {
 	payments []*types.Payment 
 }
 
+
 // RegisterAccount регистрирует  нового пользователя в системе
 func (s *Service) RegisterAccount(phone types.Phone) (*types.Account, error) {
 	for _, account := range s.accounts {
@@ -38,6 +39,7 @@ func (s *Service) RegisterAccount(phone types.Phone) (*types.Account, error) {
 
 	return account, nil
 }
+
 
 // Deposit пополняет счёт пользователя
 func (s *Service) Deposit(accountID int64, amount types.Money) error {
@@ -60,6 +62,7 @@ func (s *Service) Deposit(accountID int64, amount types.Money) error {
 	account.Balance += amount
 	return nil
 }
+
 
 // Pay платит определенную сумму денег за категорию
 func (s *Service) Pay(accountID int64, amount types.Money, category types.PaymentCategory) (*types.Payment, error) {
@@ -94,6 +97,7 @@ func (s *Service) Pay(accountID int64, amount types.Money, category types.Paymen
 	return payment, nil
 }
 
+
 // FindAccountById ищет пользователя по ID
 func (s *Service) FindAccountByID(accountID int64) (*types.Account, error) {
 	var account *types.Account
@@ -110,6 +114,7 @@ func (s *Service) FindAccountByID(accountID int64) (*types.Account, error) {
 
 	return account, nil
 }
+
 
 // FindPaymentByID ищет платёж по ID
 func (s *Service) FindPaymentByID(paymentID string) (*types.Payment, error) {
@@ -145,4 +150,20 @@ func (s *Service) Reject(paymentID string) error {
 	acc.Balance += pay.Amount
 
 	return nil
+}
+
+
+// Repeat повторяет платёж по идентификатору 
+func (s *Service) Repeat(paymentID string) (*types.Payment, error) {
+	pay, err := s.FindPaymentByID(paymentID)
+	if err != nil {
+	  return nil, err
+	}
+  
+	payment, err := s.Pay(pay.AccountID, pay.Amount, pay.Category)
+	if err != nil {
+	  return nil, err
+	}
+  
+	return payment, nil
 }
