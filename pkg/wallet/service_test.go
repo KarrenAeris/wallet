@@ -124,3 +124,33 @@ func TestService_Repeat_success(t *testing.T) {
 	  t.Errorf("Repeat(): Error(): can't pay for an account(%v): %v", pay.ID, err)
 	}
 }
+
+// Автотесты для PayFromFavorite
+func TestService_Favorite_success_user(t *testing.T) {
+	svc := Service{}
+
+	account, err := svc.RegisterAccount("+992000000001")
+	if err != nil {
+		t.Errorf("method RegisterAccount returned not nil error, account => %v", account)
+	}
+
+	err = svc.Deposit(account.ID, 100_00)
+	if err != nil {
+		t.Errorf("\ngot > %v \nwant > nil", err)
+	}
+
+	payment, err := svc.Pay(account.ID, 10_00, "food")
+	if err != nil {
+		t.Errorf("\ngot > %v \nwant > nil", err)
+	}
+
+	favorite, err := svc.FavoritePayment(payment.ID, "Tcell")
+	if err != nil {
+		t.Errorf("FavoritePayment(): Error(): can't find the favorite(%v): %v", favorite, err)
+	}
+
+	paymentFavorite, err := svc.PayFromFavorite(favorite.ID)
+	if err != nil {
+		t.Errorf("PayFromFavorite(): Error(): can't pay from the favorite(%v): %v", paymentFavorite, err)
+	}
+}
