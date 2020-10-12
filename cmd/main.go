@@ -1,26 +1,14 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/KarrenAeris/wallet/pkg/wallet"
-	
 )
 
 
 func main() {
 	svc := &wallet.Service{}
-	account, err := svc.RegisterAccount("+992930000001")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	err = svc.Deposit(account.ID, 10)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(account.Balance)
+	svc.RegisterAccount("+992930000000")
+	svc.RegisterAccount("+992931111111")
+	svc.RegisterAccount("+992932222222")
+	svc.ExportToFile("data/export.txt")
 }
