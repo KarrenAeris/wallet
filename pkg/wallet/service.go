@@ -2,7 +2,9 @@ package wallet
 
 import (
 	"errors"
-
+	"os"
+	"log"
+	"strconv"
 	"github.com/KarrenAeris/wallet/pkg/types"
 	"github.com/google/uuid"
 )
@@ -14,6 +16,7 @@ var ErrAccountNotFound = errors.New("account not found")
 var ErrNotEnoughtBalance = errors.New("account not enough balance")
 var ErrPaymentNotFound = errors.New("payment not found")
 var ErrFavoriteNotFound = errors.New("favorite not found")
+var ErrFileNotFound = errors.New("file not found")
 
 
 type Service struct  {
@@ -214,4 +217,41 @@ func (s *Service) PayFromFavorite(favoriteID string) (*types.Payment, error) {
 	}
 
 	return payment, nil
+}
+
+// ExportToFile экспортирует все аккаунты в файл, путь к которому указан в переменной path
+func (s *Service) ExportToFile(path string) error {
+	file, err := os.Create(path)
+
+	if err != nil {
+		log.Print(err)
+		return ErrFileNotFound
+	}
+
+	defer func() {
+		err := file.Close(); 
+		if err != nil {
+			log.Print(err)
+		}
+	}()
+
+	stringAccount := ""
+
+	for _, acc := range s.accounts {
+		ID := strconv.FormatInt(int64(acc.ID), 10)
+		phone := string(acc.Phone)
+		balance := strconv.FormatInt(int64(acc.Balance), 10)
+
+		stringAccount += ID + ";"
+		stringAccount += phone + ";"
+		stringAccount += balance + "|"
+	}
+
+	_, err = file.Write([]byte(stringAccount))
+	if err != nil {
+		log.Print(err)
+		return ErrFileNotFound
+	}
+
+	return nil
 }
