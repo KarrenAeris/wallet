@@ -5,6 +5,8 @@ import (
 	"os"
 	"log"
 	"strconv"
+	"io"
+	"strings"
 	"github.com/KarrenAeris/wallet/pkg/types"
 	"github.com/google/uuid"
 )
@@ -238,9 +240,9 @@ func (s *Service) ExportToFile(path string) error {
 	stringAccount := ""
 
 	for _, acc := range s.accounts {
-		ID := strconv.FormatInt(int64(acc.ID), 10)
+		ID := strconv.Itoa(int(acc.ID))
 		phone := string(acc.Phone)
-		balance := strconv.FormatInt(int64(acc.Balance), 10)
+		balance := strconv.Itoa(int(acc.Balance))
 
 		stringAccount += ID + ";"
 		stringAccount += phone + ";"
@@ -251,6 +253,72 @@ func (s *Service) ExportToFile(path string) error {
 	if err != nil {
 		log.Print(err)
 		return ErrFileNotFound
+	}
+
+	return nil
+}
+
+// ImportFromFile импортирует все данные из файла, путь к которому указан в переменной path
+func (s *Service) ImportFromFile(path string) error {
+	file, err := os.Open(path)
+
+	if err != nil {
+		log.Print(err)
+		return ErrFileNotFound
+	}
+
+	defer func() {
+		err := file.Close(); 
+		if err != nil {
+			log.Print(err)
+		}
+	}()
+
+	content := make([]byte, 0)
+	buf := make([]byte, 4)
+	for {
+		read, err := file.Read(buf)
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Print(err)
+			return ErrFileNotFound
+		}
+		content = append(content, buf[:read]...)
+	}
+
+	data := string(content)
+
+	accountsString := strings.Split(string(data), "|")
+
+	if len(accountsString) > 0 {
+		accountsString = accountsString[:len(accountsString)-1]
+	}
+
+	for _, acc := range accountsString {
+		fields := strings.Split(acc, ";")
+
+		ID, err := strconv.Atoi(fields[0])
+		if err != nil {
+			return err
+		}
+
+		phone := fields[1]
+
+		balance, err := strconv.Atoi(fields[2])
+		if err != nil {
+			return err
+		}
+
+		account := &types.Account{
+			ID:      int64(ID),
+			Phone:   types.Phone(phone),
+			Balance: types.Money(balance),
+		}
+
+		s.accounts = append(s.accounts, account)
 	}
 
 	return nil
