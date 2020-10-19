@@ -7,5 +7,7 @@ import (
 
 func main() {
 	svc := &wallet.Service{}
-	svc.ImportFromFile("data/import.txt")
+	
+	svc.ExportToFile("../data/export.txt")
+	svc.ImportFromFile("../data/import.txt")
 }
