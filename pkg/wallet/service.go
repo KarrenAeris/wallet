@@ -785,3 +785,38 @@ func (s *Service) FilterPaymentsByFn(filter func(payment types.Payment) bool, go
 	}
 	return  ps, nil
 }
+
+//SumPaymentsWithProgress делит платежи на куски по 100_000 платежей в каждом и суммирует их параллельно друг другу
+func (s *Service) SumPaymentsWithProgress() <-chan types.Progress {
+	sizeOfUnit := 100_000
+
+	wg := sync.WaitGroup{}
+	goroutines := len(s.payments) / sizeOfUnit /* определяем количество горутин - сколько кусков потребуется сложить*/
+	if goroutines <= 1 {
+		goroutines = 1		/* на случай если платеж всего один (или их нет) */
+	}
+	ch := make(chan types.Progress)
+
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		go func(ch chan <- types.Progress, payments []*types.Payment) {
+			//defer close(ch)
+			var sum types.Money = 0
+			defer wg.Done()
+			for _, pay := range payments {
+				sum += pay.Amount
+			}
+			ch <- types.Progress{
+				Part:   len(payments), 
+				Result: sum,
+			}
+		}(ch, s.payments)
+	}
+
+	go func() {
+		defer close(ch)
+		wg.Wait()
+	}()
+
+	return ch
+} 

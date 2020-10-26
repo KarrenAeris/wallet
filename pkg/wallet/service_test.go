@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"log"
 	"fmt"
 	"testing"
 	"github.com/KarrenAeris/wallet/pkg/types"
@@ -333,3 +334,31 @@ func Benchmark_FilterPaymentsByFn(b *testing.B) {
 	  }
 	}
 }
+
+func BenchmarkSumPaymentsWithProgress_user(b *testing.B) {
+	svc := &Service{}
+  
+	account, err := svc.RegisterAccount("+992000000001")
+	if err != nil {
+	  b.Errorf("method RegisterAccount returned not nil error, account => %v", account)
+	}
+  
+	err = svc.Deposit(account.ID, 1000)
+	if err != nil {
+	  b.Errorf("method Deposit returned not nil error, error => %v", err)
+	}
+  
+	for i := types.Money(1); i <= 10; i++ {
+	  svc.Pay(account.ID, types.Money(i), "red bull") 	/* отдаю дань прекрасному напитку, что сделал этот код возможным */
+	}
+	fmt.Println(svc.payments[9])
+  
+	ch := svc.SumPaymentsWithProgress()
+  
+	s, works := <-ch
+	if !works {
+	  b.Errorf("method SumPaymentsWithProgress was not closed => %v", works)
+	}
+  
+	log.Println("\n s => ", s)
+  }
